@@ -1,4 +1,4 @@
-gotests/wget
+go-tests/wget
 ========
 
 Port of wget unix command
