@@ -24,19 +24,19 @@ func get(url string) {
 		return
 	}
 	switch resp.StatusCode {
-		case 200:
-			l("200 OK")
-		default:
-			l("ERROR",resp.StatusCode)
-			return
+	case 200:
+		l("200 OK")
+	default:
+		l("ERROR", resp.StatusCode)
+		return
 	}
-	path :=resp.Request.URL.Path
-	i:=strings.LastIndex(path,"/")
-	path=path[i+1:]
+	path := resp.Request.URL.Path
+	i := strings.LastIndex(path, "/")
+	path = path[i+1:]
 	if path == "" {
 		path = "index.html"
 	}
-	
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		l("Error reading body", err)
@@ -47,7 +47,7 @@ func get(url string) {
 		l("Error writing to file", err)
 		return
 	}
-	l(path+" Saved")
+	l(path + " Saved")
 
 }
 
