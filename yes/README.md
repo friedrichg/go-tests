@@ -1,4 +1,4 @@
-go-tests/yes
+go-tests / yes
 ========
 
 Port of yes unix command
