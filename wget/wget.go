@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"net/url"
 	"os"
 )
 
@@ -14,6 +16,7 @@ func usage() {
 
 func get(url string) {
 	l := fmt.Println
+
 	resp, err := http.Get(url)
 	if err != nil {
 		l("Error getting webpage", err)
@@ -21,12 +24,12 @@ func get(url string) {
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		l("Error reading body",err)
+		l("Error reading body", err)
 		return
 	}
-	err = ioutil.WriteFile("index.html", body,0644)
+	err = ioutil.WriteFile("index.html", body, 0644)
 	if err != nil {
-		l("Error writing to file",err)
+		l("Error writing to file", err)
 		return
 	}
 
@@ -36,8 +39,17 @@ func main() {
 	if len(os.Args) < 2 {
 		usage()
 	} else {
-		url := os.Args[1]
-		get(url)
+		u := os.Args[1]
+		uparsed, err := url.Parse(u)
+		if err != nil {
+			log.Println("La url es invalida", u)
+			usage()
+		} else {
+			if uparsed.Scheme == "" {
+				uparsed.Scheme = "http"
+			}
+			get(uparsed.String())
+		}
 	}
 
 }
