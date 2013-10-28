@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 )
 
 func usage() {
@@ -22,16 +23,31 @@ func get(url string) {
 		l("Error getting webpage", err)
 		return
 	}
+	switch resp.StatusCode {
+		case 200:
+			l("200 OK")
+		default:
+			l("ERROR",resp.StatusCode)
+			return
+	}
+	path :=resp.Request.URL.Path
+	i:=strings.LastIndex(path,"/")
+	path=path[i+1:]
+	if path == "" {
+		path = "index.html"
+	}
+	
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		l("Error reading body", err)
 		return
 	}
-	err = ioutil.WriteFile("index.html", body, 0644)
+	err = ioutil.WriteFile(path, body, 0644)
 	if err != nil {
 		l("Error writing to file", err)
 		return
 	}
+	l(path+" Saved")
 
 }
 
