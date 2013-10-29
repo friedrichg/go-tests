@@ -9,42 +9,55 @@ import (
 func usage() {
 	fmt.Println("Usage: cat [OPTION]... [FILE]...")
 	//TODO: show flags supported
-	os.Exit(1)
+	os.Exit(0)
 }
 
-func cat(file []string) {
-	l := fmt.Println
+func cat(fi *os.File) {
 	out := fmt.Print
-	for _, f := range file {
-		fi, err := os.Open(f)
-		if err != nil {
-			l("cat: " + f + ": No such file or directory")
-			continue
+	buf := make([]byte, 1024)
+	for {
+		n, err := fi.Read(buf)
+		if err != nil && err != io.EOF {
+			panic(err)
 		}
-		defer func() {
-			if err := fi.Close(); err != nil {
-				panic(err)
-			}
-		}()
-		buf := make([]byte, 1024)
-		for {
-			n, err := fi.Read(buf)
-			if err != nil && err != io.EOF {
-				panic(err)
-			}
-			if n == 0 {
-				break
-			}
-			out(string(buf[:n]))
+		if n == 0 {
+			break
 		}
+		out(string(buf[:n]))
 	}
+
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		usage()
-	} else {
-		//TODO: support more flags
-		cat(os.Args[1:])
+	var exit_code int
+	l := fmt.Println
+	filename := os.Args[1:]
+	if len(filename) == 0 {
+		filename = make([]string, 1)
+		filename[0] = "-"
 	}
+
+	//TODO: Parse more flags
+	for _, f := range filename {
+		switch f {
+		case "--help":
+			usage()
+		case "-":
+			cat(os.Stdin)
+		default:
+			fi, err := os.Open(f)
+			if err != nil {
+				l("cat: " + f + ": No such file or directory")
+				exit_code = 1
+				continue
+			}
+			defer func() {
+				if err := fi.Close(); err != nil {
+					panic(err)
+				}
+			}()
+			cat(fi)
+		}
+	}
+	os.Exit(exit_code)
 }
