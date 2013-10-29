@@ -12,6 +12,7 @@ import (
 
 func usage() {
 	fmt.Println("Usage: wget [OPTION]... [URL]...")
+	//TODO: offer more flags
 	os.Exit(1)
 }
 
@@ -55,10 +56,11 @@ func main() {
 	if len(os.Args) < 2 {
 		usage()
 	} else {
+		//TODO: support normal flags
 		u := os.Args[1]
 		uparsed, err := url.Parse(u)
 		if err != nil {
-			log.Println("La url es invalida", u)
+			log.Println("The url is invalid", u)
 			usage()
 		} else {
 			if uparsed.Scheme == "" {
