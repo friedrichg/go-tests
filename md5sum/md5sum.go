@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"crypto/md5"
 	"fmt"
 	"io"
 	"os"
@@ -8,35 +10,41 @@ import (
 )
 
 func usage() {
-	fmt.Println("Usage: cat [OPTION]... [FILE]...")
-	//TODO: support -n
+	l := fmt.Println
+	l("Usage: md5sum [OPTION]... [FILE]...")
+	l()
 	os.Exit(0)
 }
 
-func cat(fi *os.File) {
-	out := fmt.Print
+func encodeFile(fi *os.File) {
+	reader := bufio.NewReader(fi)
 	buf := make([]byte, 1024)
+	h := md5.New()
 	for {
-		n, err := fi.Read(buf)
+		n, err := reader.Read(buf)
 		if err != nil && err != io.EOF {
 			panic(err)
 		}
 		if n == 0 {
 			break
 		}
-		out(string(buf[:n]))
+		_, err = h.Write(buf[:n])
+		if err != nil {
+			panic(err)
+		}
 	}
+	fmt.Printf("%x", h.Sum(nil))
+}
 
+func closeFile(fi *os.File) {
+	if err := fi.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func main() {
 	var exit_code int
-	l := fmt.Println
 	args := os.Args[1:]
-	if len(args) == 0 {
-		args = make([]string, 1)
-		args[0] = "-"
-	}
 
 	add := true
 	//Add default Stdin if only args are passed
@@ -50,28 +58,25 @@ func main() {
 		args = append(args, "-")
 	}
 
-	//TODO: Parse more flags (-n)
+	//TODO: Parse more flags
+	l := fmt.Println
 	for _, a := range args {
 		switch {
 		case a == "--help":
 			usage()
 		case a == "-":
-			cat(os.Stdin)
+			encodeFile(os.Stdin)
 		case strings.HasPrefix(a, "-"):
 			usage()
 		default:
 			fi, err := os.Open(a)
 			if err != nil {
-				l("cat: " + a + ": No such file or directory")
+				l("md5sum: " + a + ": No such file or directory")
 				exit_code = 1
 				continue
 			}
-			defer func() {
-				if err := fi.Close(); err != nil {
-					panic(err)
-				}
-			}()
-			cat(fi)
+			defer closeFile(fi)
+			encodeFile(fi)
 		}
 	}
 	os.Exit(exit_code)

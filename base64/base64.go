@@ -71,8 +71,8 @@ func main() {
 	var exit_code int
 	ignore := false
 	args := os.Args[1:]
-	add := true
 
+	add := true
 	//Add default Stdin if only args are passed
 	for _, a := range args {
 		if a == "-" || !strings.HasPrefix(a, "-") {

@@ -5,4 +5,4 @@ Port of cat unix command
 
 	cat https://github.com/friedrichg/go-tests/raw/master/cat/cat.go
 	go build cat.go
-	./cat http://www.google.com
+	./cat cat.go

@@ -3,3 +3,5 @@ wget/wget
 yes/yes
 
 base64/base64
+
+md5sum/md5sum
