@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -11,6 +13,47 @@ func usage() {
 	fmt.Println("Usage: cat [OPTION]... [FILE]...")
 	//TODO: support -n
 	os.Exit(0)
+}
+
+func openURL(url string) int {
+	l := fmt.Println
+	resp, err := http.Get(url)
+	if err != nil {
+		l("Error getting webpage", err)
+		return 1
+	}
+	switch resp.StatusCode {
+	case 200:
+		//l("200 OK")
+	default:
+		l("ERROR", resp.StatusCode)
+		return 1
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		l("Error reading body", err)
+		return 1
+	}
+	randomFile, err := ioutil.TempFile("", "base64")
+	if err != nil {
+		l("Error creating temp file")
+		return 1
+	}
+	defer randomFile.Close()
+	defer os.Remove(randomFile.Name())
+	//TODO: this does not support big chunks. Fix it
+	_, err = randomFile.Write(body)
+	if err != nil {
+		l("Error writing to temp file")
+		return 1
+	}
+	_, err = randomFile.Seek(0, os.SEEK_SET)
+	if err != nil {
+		l("Error restarting temp file")
+		return 1
+	}
+	cat(randomFile)
+	return 0
 }
 
 func cat(fi *os.File) {
@@ -59,6 +102,8 @@ func main() {
 			cat(os.Stdin)
 		case strings.HasPrefix(a, "-"):
 			usage()
+		case strings.HasPrefix(a, "http://"):
+			openURL(a)
 		default:
 			fi, err := os.Open(a)
 			if err != nil {
